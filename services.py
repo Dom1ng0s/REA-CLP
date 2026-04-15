@@ -23,6 +23,28 @@ class Repositorio:
             aluno.interesses.append(tag)
         self.db.commit()
         return aluno
+    def cadastrar_rea(self, titulo: str, tags: list[str]):
+        """Implementa o Diagrama de Atividades: Catalogar REA"""
+        novo_rea = READB(titulo=titulo)
+        
+        for nome_tag in tags:
+            # Verifica se a tag já existe no banco
+            tag = self.db.query(TagDB).filter(TagDB.nome == nome_tag).first()
+            if not tag:
+                # Se não existir, cria uma nova tag
+                tag = TagDB(nome=nome_tag)
+                self.db.add(tag)
+            
+            # Vincula a tag ao REA
+            novo_rea.tags.append(tag)
+            
+        self.db.add(novo_rea)
+        self.db.commit()
+        return novo_rea
+
+    def listar_reas(self):
+        """Busca todos os recursos catalogados"""
+        return self.db.query(READB).all()
 
 class MotorRecomendacao:
     def __init__(self, db: Session):

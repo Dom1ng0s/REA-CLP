@@ -19,6 +19,10 @@ def get_db():
 class InteressesRequest(BaseModel):
     tags: list[str]
 
+class REACreateRequest(BaseModel):
+    titulo: str
+    tags: list[str]
+
 # --- ENDPOINTS ---
 
 @app.get("/recomendacoes/{aluno_id}")
@@ -65,3 +69,37 @@ def criar_dados_iniciais(db: Session = Depends(get_db)):
     db.commit()
     
     return {"mensagem": "Dados iniciais criados!", "aluno_id": aluno.id}
+
+# --- ROTAS DO PROFESSOR (ALIMENTAR O SISTEMA) ---
+
+@app.post("/reas", status_code=201, tags=["Professor"])
+def catalogar_rea(request: REACreateRequest, db: Session = Depends(get_db)):
+    """Rota para o Professor adicionar um novo material ao sistema"""
+    repo = Repositorio(db)
+    novo_rea = repo.cadastrar_rea(request.titulo, request.tags)
+    
+    return {
+        "mensagem": "Recurso catalogado com sucesso!", 
+        "rea": {
+            "id": novo_rea.id, 
+            "titulo": novo_rea.titulo,
+            "tags": request.tags
+        }
+    }
+
+@app.get("/reas", tags=["Shared"])
+def listar_catalogo(db: Session = Depends(get_db)):
+    """Lista todos os materiais disponíveis no banco"""
+    repo = Repositorio(db)
+    reas = repo.listar_reas()
+    
+    # Formata a saída para mostrar o título e a lista de nomes das tags
+    return {
+        "catalogo": [
+            {
+                "id": r.id, 
+                "titulo": r.titulo, 
+                "tags": [t.nome for t in r.tags]
+            } for r in reas
+        ]
+    }
