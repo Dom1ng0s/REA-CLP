@@ -52,6 +52,16 @@ class Repositorio:
         return self.db.query(READB).filter(
             READB.tags.any(TagDB.nome == tag_nome)
         ).all()
+    def deletar_rea(self, rea_id: str) -> bool:
+        """Deleta um material do banco de dados (O 'D' do CRUD)"""
+        rea = self.db.query(READB).filter(READB.id == rea_id).first()
+        
+        if rea:
+            self.db.delete(rea)
+            self.db.commit()
+            return True
+            
+        return False
 
 class MotorRecomendacao:
     def __init__(self, db: Session):

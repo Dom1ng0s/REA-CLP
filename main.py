@@ -104,6 +104,7 @@ def listar_catalogo(db: Session = Depends(get_db)):
         ]
     }
 
+
 @app.get("/reas/buscar", tags=["Shared"])
 def buscar_recursos(tag: str, db: Session = Depends(get_db)):
     """
@@ -125,3 +126,17 @@ def buscar_recursos(tag: str, db: Session = Depends(get_db)):
             } for r in reas
         ]
     }
+
+@app.delete("/reas/{rea_id}", tags=["Professor"])
+def remover_rea(rea_id: str, db: Session = Depends(get_db)):
+    """
+    Remove um material educacional do catálogo.
+    Exige o ID do material.
+    """
+    repo = Repositorio(db)
+    sucesso = repo.deletar_rea(rea_id)
+    
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Material não encontrado para exclusão.")
+    
+    return {"mensagem": "Material removido do catálogo com sucesso!"}
