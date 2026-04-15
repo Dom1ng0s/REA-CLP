@@ -103,3 +103,25 @@ def listar_catalogo(db: Session = Depends(get_db)):
             } for r in reas
         ]
     }
+
+@app.get("/reas/buscar", tags=["Shared"])
+def buscar_recursos(tag: str, db: Session = Depends(get_db)):
+    """
+    Busca REAs por uma tag específica.
+    Exemplo de uso na URL: /reas/buscar?tag=programação
+    """
+    repo = Repositorio(db)
+    reas = repo.buscar_reas_por_tag(tag.lower()) # Passamos para minúsculo por segurança
+    
+    if not reas:
+        return {"mensagem": f"Nenhum material encontrado com a tag '{tag}'", "resultados": []}
+    
+    return {
+        "resultados": [
+            {
+                "id": r.id, 
+                "titulo": r.titulo, 
+                "tags": [t.nome for t in r.tags]
+            } for r in reas
+        ]
+    }

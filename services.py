@@ -46,6 +46,13 @@ class Repositorio:
         """Busca todos os recursos catalogados"""
         return self.db.query(READB).all()
 
+    def buscar_reas_por_tag(self, tag_nome: str):
+        """Busca materiais educacionais que contenham uma tag específica"""
+        # O SQLAlchemy usa o '.any()' para procurar dentro de listas de relacionamentos (N:N)
+        return self.db.query(READB).filter(
+            READB.tags.any(TagDB.nome == tag_nome)
+        ).all()
+
 class MotorRecomendacao:
     def __init__(self, db: Session):
         self.db = db
