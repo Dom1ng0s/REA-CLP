@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal, AlunoDB, READB, TagDB
 from services import Repositorio, MotorRecomendacao
+from typing import Optional
 
 app = FastAPI(title="Motor de Recomendação REA")
 
@@ -22,6 +23,10 @@ class InteressesRequest(BaseModel):
 class REACreateRequest(BaseModel):
     titulo: str
     tags: list[str]
+
+class REAUpdateRequest(BaseModel):
+    titulo: Optional[str] = None  # Agora é opcional e o padrão é None
+    tags: Optional[list[str]] = None
 
 # --- ENDPOINTS ---
 
@@ -140,3 +145,26 @@ def remover_rea(rea_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Material não encontrado para exclusão.")
     
     return {"mensagem": "Material removido do catálogo com sucesso!"}
+
+# ... código anterior do main.py ...
+
+@app.put("/reas/{rea_id}", tags=["Professor"])
+def editar_rea(rea_id: str, request: REAUpdateRequest, db: Session = Depends(get_db)):
+    """
+    Edita um material educacional existente.
+    Substitui o título e a lista de tags.
+    """
+    repo = Repositorio(db)
+    rea_atualizado = repo.atualizar_rea(rea_id, request.titulo, request.tags)
+    
+    if not rea_atualizado:
+        raise HTTPException(status_code=404, detail="Material não encontrado para edição.")
+    
+    return {
+        "mensagem": "Material atualizado com sucesso!",
+        "rea": {
+            "id": rea_atualizado.id,
+            "titulo": rea_atualizado.titulo,
+            "tags": [t.nome for t in rea_atualizado.tags]
+        }
+    }

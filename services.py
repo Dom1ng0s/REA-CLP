@@ -1,6 +1,7 @@
 # services.py
 from sqlalchemy.orm import Session
 from database import AlunoDB, READB, TagDB
+from typing import Optional
 
 class Repositorio:
     def __init__(self, db: Session):
@@ -62,6 +63,38 @@ class Repositorio:
             return True
             
         return False
+    def atualizar_rea(self, rea_id: str, titulo: Optional[str] = None, tags: Optional[list[str]] = None):
+        """O 'U' do CRUD: Agora dentro da classe e com suporte a update parcial"""
+        rea = self.db.query(READB).filter(READB.id == rea_id).first()
+        
+        if not rea:
+            return None
+            
+        if titulo is not None:
+            rea.titulo = titulo
+        
+        if tags is not None:
+            novas_tags_db = []
+            for nome_tag in tags:
+                nome_limpo = nome_tag.lower().strip()
+                tag_existente = self.db.query(TagDB).filter(TagDB.nome == nome_limpo).first()
+                
+                if not tag_existente:
+                    tag_existente = TagDB(nome=nome_limpo)
+                    self.db.add(tag_existente)
+                    self.db.flush()
+                
+                novas_tags_db.append(tag_existente)
+            
+            rea.tags = novas_tags_db
+        
+        try:
+            self.db.commit()
+            self.db.refresh(rea)
+            return rea
+        except Exception as e:
+            self.db.rollback()
+            raise e
 
 class MotorRecomendacao:
     def __init__(self, db: Session):
