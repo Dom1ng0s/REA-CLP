@@ -30,7 +30,7 @@ class REAUpdateRequest(BaseModel):
 
 # --- ENDPOINTS ---
 
-@app.get("/recomendacoes/{aluno_id}")
+@app.get("/aluno/{aluno_id}/recomendacoes",tags=["Aluno"])
 def obter_recomendacoes(aluno_id: str, db: Session = Depends(get_db)):
     """Fluxo Principal do Diagrama de Sequência"""
     repo = Repositorio(db)
@@ -44,7 +44,7 @@ def obter_recomendacoes(aluno_id: str, db: Session = Depends(get_db)):
     
     return resultado
 
-@app.post("/alunos/{aluno_id}/interesses")
+@app.post("/alunos/{aluno_id}/interesses",tags=["Aluno"])
 def atualizar_interesses(aluno_id: str, request: InteressesRequest, db: Session = Depends(get_db)):
     """Fluxo alternativo: Cadastrar Perfil (Diagrama de Atividades)"""
     repo = Repositorio(db)
@@ -56,7 +56,7 @@ def atualizar_interesses(aluno_id: str, request: InteressesRequest, db: Session 
     return {"mensagem": "Interesses atualizados com sucesso", "interesses": request.tags}
 
 # --- ROTA AUXILIAR PARA POPULAR O BANCO DE TESTE ---
-@app.post("/setup-teste")
+@app.post("/rea/setup-teste",tags=["Auxiliares"])
 def criar_dados_iniciais(db: Session = Depends(get_db)):
     """Use esta rota apenas uma vez para criar dados falsos no banco e testar"""
     # Cria um aluno
@@ -77,7 +77,7 @@ def criar_dados_iniciais(db: Session = Depends(get_db)):
 
 # --- ROTAS DO PROFESSOR (ALIMENTAR O SISTEMA) ---
 
-@app.post("/reas", status_code=201, tags=["Professor"])
+@app.post("/professor/reas/novo", status_code=201, tags=["Professor"])
 def catalogar_rea(request: REACreateRequest, db: Session = Depends(get_db)):
     """Rota para o Professor adicionar um novo material ao sistema"""
     repo = Repositorio(db)
@@ -92,7 +92,7 @@ def catalogar_rea(request: REACreateRequest, db: Session = Depends(get_db)):
         }
     }
 
-@app.get("/reas", tags=["Shared"])
+@app.get("/rea/catalogo", tags=["Auxiliares"])
 def listar_catalogo(db: Session = Depends(get_db)):
     """Lista todos os materiais disponíveis no banco"""
     repo = Repositorio(db)
@@ -110,7 +110,7 @@ def listar_catalogo(db: Session = Depends(get_db)):
     }
 
 
-@app.get("/reas/buscar", tags=["Shared"])
+@app.get("/rea/buscar", tags=["Auxiliares"])
 def buscar_recursos(tag: str, db: Session = Depends(get_db)):
     """
     Busca REAs por uma tag específica.
@@ -132,7 +132,7 @@ def buscar_recursos(tag: str, db: Session = Depends(get_db)):
         ]
     }
 
-@app.delete("/reas/{rea_id}", tags=["Professor"])
+@app.delete("/professor/reas/delete/{rea_id}", tags=["Professor"])
 def remover_rea(rea_id: str, db: Session = Depends(get_db)):
     """
     Remove um material educacional do catálogo.
@@ -148,7 +148,7 @@ def remover_rea(rea_id: str, db: Session = Depends(get_db)):
 
 # ... código anterior do main.py ...
 
-@app.put("/reas/{rea_id}", tags=["Professor"])
+@app.put("/professor/reas/edit/{rea_id}", tags=["Professor"])
 def editar_rea(rea_id: str, request: REAUpdateRequest, db: Session = Depends(get_db)):
     """
     Edita um material educacional existente.
